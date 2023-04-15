@@ -1,0 +1,19 @@
+{
+  "todos": [
+    {
+      "title": "Walk the dog",
+      "done": false,
+      "id": 1
+    },
+    {
+      "title": "Call grandma",
+      "done": true,
+      "id": 2
+    },
+    {
+      "title": "Buy groceries",
+      "done": false,
+      "id": 3
+    }
+  ]
+}
