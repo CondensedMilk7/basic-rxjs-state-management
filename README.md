@@ -11,7 +11,7 @@ After cloning this repository, install dependencies:
 npm install
 ```
 
-Then run the back-end server simulator ([json-server)](https://github.com/typicode/json-server)) with:
+Then run the back-end server simulator ([json-server](https://github.com/typicode/json-server)) with:
 
 ```sh
 npm run server
