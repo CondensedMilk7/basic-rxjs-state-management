@@ -1,4 +1,4 @@
-<div class="container" style="max-width: 500px">
+<div *ngIf="vm$ | async as vm" class="container" style="max-width: 500px">
   <h1>Your List:</h1>
   <div class="row mb-2 gap-2 p-2">
     <input
@@ -12,21 +12,26 @@
       [disabled]="!newItemTitle"
       (click)="addItem()"
     >
-      <span *ngIf="!(loading$ | async)"> Add </span>
+      <span *ngIf="!vm.loading"> Add </span>
       <div
         class="spinner-border spinner-border-sm"
         role="status"
-        *ngIf="loading$ | async"
+        *ngIf="vm.loading"
       >
         <span class="visually-hidden">Loading...</span>
       </div>
     </button>
   </div>
-  <ul class="list-group" *ngIf="todos$ | async as todos">
-    <p *ngIf="todos.length === 0">Your list will show here...</p>
+  <ul class="list-group">
+    <div class="card text-bg-danger" *ngIf="vm.error">
+      <div class="card-body">
+        <p>Error: {{ vm.error.message }}</p>
+      </div>
+    </div>
+    <p *ngIf="vm.todos.length === 0">Your list will show here...</p>
     <li
       class="list-group-item d-flex justify-content-between align-items-center"
-      *ngFor="let item of todos"
+      *ngFor="let item of vm.todos"
     >
       <div class="d-flex align-items-center">
         <input

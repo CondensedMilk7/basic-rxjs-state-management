@@ -1,6 +1,10 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+} from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, tap } from 'rxjs';
+import { BehaviorSubject, catchError, of, tap } from 'rxjs';
 
 export interface TodoItem {
   id: number;
@@ -14,11 +18,26 @@ export class TodoService {
 
   private todos$ = new BehaviorSubject<TodoItem[]>([]);
   private todosLoading$ = new BehaviorSubject<boolean>(false);
+  private error$ = new BehaviorSubject<HttpErrorResponse | null>(null);
 
   constructor(private http: HttpClient) {}
 
+  get error() {
+    return (
+      this.error$
+        .asObservable()
+        // If error has emitted a value, loading has finished
+        .pipe(tap(() => this.todosLoading$.next(false)))
+    );
+  }
+
   get loading() {
-    return this.todosLoading$.asObservable();
+    return (
+      this.todosLoading$
+        .asObservable()
+        // If loading state is retriggered, reset the error stream
+        .pipe(tap((loading) => loading && this.error$.next(null)))
+    );
   }
 
   get todos() {
@@ -34,10 +53,14 @@ export class TodoService {
     this.todosLoading$.next(true);
 
     this.http
-      .get<TodoItem[]>(`${this.url}`)
+      .get<TodoItem[]>(this.url)
       .pipe(
         tap((todos) => {
           this.todos$.next(todos);
+        }),
+        catchError((error: HttpErrorResponse) => {
+          this.error$.next(error);
+          return of(null);
         })
       )
       .subscribe();
@@ -56,7 +79,7 @@ export class TodoService {
     };
 
     this.http
-      .post<{ id: number }>(`${this.url}`, JSON.stringify(itemToAdd), {
+      .post<{ id: number }>(this.url, JSON.stringify(itemToAdd), {
         headers,
       })
       .pipe(
@@ -66,6 +89,10 @@ export class TodoService {
             ...itemToAdd,
           };
           this.todos$.next([...this.todos$.value, newItem]);
+        }),
+        catchError((error: HttpErrorResponse) => {
+          this.error$.next(error);
+          return of(null);
         })
       )
       .subscribe();
@@ -79,6 +106,10 @@ export class TodoService {
       .pipe(
         tap(() => {
           this.todos$.next(this.todos$.value.filter((item) => item.id !== id));
+        }),
+        catchError((error: HttpErrorResponse) => {
+          this.error$.next(error);
+          return of(null);
         })
       )
       .subscribe();
@@ -101,6 +132,10 @@ export class TodoService {
             item.id === updatedItem.id ? updatedItem : item
           );
           this.todos$.next(updatedList);
+        }),
+        catchError((error: HttpErrorResponse) => {
+          this.error$.next(error);
+          return of(null);
         })
       )
       .subscribe();

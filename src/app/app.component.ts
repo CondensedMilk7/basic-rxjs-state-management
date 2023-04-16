@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { combineLatest, map } from 'rxjs';
 import { TodoItem, TodoService } from './todo.service';
 
 @Component({
@@ -9,8 +10,14 @@ import { TodoItem, TodoService } from './todo.service';
 })
 export class AppComponent implements OnInit {
   newItemTitle = '';
+
   todos$ = this.todoService.todos;
   loading$ = this.todoService.loading;
+  error$ = this.todoService.error;
+
+  vm$ = combineLatest([this.todos$, this.loading$, this.error$]).pipe(
+    map(([todos, loading, error]) => ({ todos, loading, error }))
+  );
 
   constructor(private todoService: TodoService) {}
 
