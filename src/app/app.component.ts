@@ -1,6 +1,14 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { combineLatest, map } from 'rxjs';
 import { TodoItem, TodoService } from './todo.service';
+import { Store, Select } from '@ngxs/store';
+import {
+  AddTodo,
+  DeleteTodo,
+  GetTodos,
+  UpdateTodo,
+} from './store/todo.actions';
+import { TodoState, TodoStateModel } from './store/todo.state';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -11,23 +19,19 @@ import { TodoItem, TodoService } from './todo.service';
 export class AppComponent implements OnInit {
   newItemTitle = '';
 
-  todos$ = this.todoService.todos;
-  loading$ = this.todoService.loading;
-  error$ = this.todoService.error;
+  @Select(TodoState) vm$!: Observable<TodoStateModel>;
 
-  vm$ = combineLatest([this.todos$, this.loading$, this.error$]).pipe(
-    map(([todos, loading, error]) => ({ todos, loading, error }))
-  );
-
-  constructor(private todoService: TodoService) {}
+  constructor(private todoService: TodoService, private store: Store) {}
 
   ngOnInit(): void {
-    this.todoService.init();
+    this.store.dispatch(new GetTodos());
   }
 
   addItem() {
-    this.todoService.addItem(this.newItemTitle);
-    this.newItemTitle = '';
+    // this.todoService.addItem(this.newItemTitle);
+    this.store.dispatch(new AddTodo(this.newItemTitle)).subscribe(() => {
+      this.newItemTitle = '';
+    });
   }
 
   changeDone(itemToChange: TodoItem) {
@@ -36,10 +40,10 @@ export class AppComponent implements OnInit {
       done: !itemToChange.done,
     };
 
-    this.todoService.updateItem(updatedItem);
+    this.store.dispatch(new UpdateTodo(updatedItem));
   }
 
   deleteItem(id: number) {
-    this.todoService.deleteItem(id);
+    this.store.dispatch(new DeleteTodo(id));
   }
 }
