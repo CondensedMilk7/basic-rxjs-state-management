@@ -102,7 +102,7 @@ export class TodoService {
     this.todosLoading$.next(true);
 
     this.http
-      .delete<TodoItem>(`${this.url}/${id}`)
+      .delete<void>(`${this.url}/${id}`)
       .pipe(
         tap(() => {
           this.todos$.next(this.todos$.value.filter((item) => item.id !== id));
